@@ -4,7 +4,6 @@ rm(list=ls(all=TRUE))
 # preliminary db stuff
 library('RMySQL')
 drv = dbDriver("MySQL")
-con = dbConnect(drv, user="cognacti_negin", dbname="cognacti_negin", host="box890.bluehost.com", port=3306, pass="negin351")
 
 # load tables into memory
 tablist = dbListTables(con)

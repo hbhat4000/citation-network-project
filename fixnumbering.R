@@ -34,6 +34,9 @@ for (j in c(1:numtitles))
     title$TID[j] = j
 }
 
+# one year is bad
+title$year[1122] = 2005
+
 # save data back
 save(author,comb,journal,title,file="extract2.RData")
 

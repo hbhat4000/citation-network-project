@@ -10,6 +10,9 @@ load("extract2.RData")
 # load network results
 load("afterbigrun2.RData")
 
+# one bad year
+title$year[1122] = 2005
+
 # number of papers each author has written
 numauth = dim(author)[1]
 numpapers = rep(0,numauth)
@@ -45,6 +48,24 @@ averagepr = rep(0,numtitle)
 averagenp = rep(0,numtitle)
 averagejsd = rep(0,numtitle)
 averageent = rep(0,numtitle)
+
+# text processing
+source('myextractor.R')
+allmats = list(NULL)
+allmats[[1]] = mytmextractor(title$name)
+allmats[[2]] = mytmextractor(title$abstract)
+allmats[[3]] = mytmextractor(title$Keyword)
+
+numnewcols = 3
+optrow = c(428,429,429)
+newcols = list(NULL)
+for (j in c(1:numnewcols))
+{
+    csm = mycossim(allmats[[j]][[1]], allmats[[j]][[2]])
+    nr = dim(csm)[1]
+    newcols[[j]] = colMeans(csm[optrow[j]:nr,])
+}
+
 for (j in c(1:numtitle))
 {
     # figure out all the authors attached to this title
@@ -69,12 +90,16 @@ for (j in c(1:numtitle))
     else
         averageent[j] = myentropy(journdist[authlist,])
 }
-# normalize average pagerank it is between 0 and 1
+# normalize average pagerank so that it is between 0 and 1
 averagepr = averagepr/max(averagepr)
 
 # put stuff into a data frame
-mydata = data.frame(cbind(title$ToC,title$TocR,title$year,numauth,averagepr,averagenp,averagejsd,averageent))
-colnames(mydata) = c("ToC","TocR","year","numauth","averagepr","averagenp","averagejsd","averageent")
+mydata = data.frame(cbind(title$ToC,title$TocR,title$year,numauth,averagepr,averagenp,averagejsd,averageent,newcols[[1]],newcols[[2]],newcols[[3]]))
+colnames(mydata) = c("ToC","TocR","year","numauth","averagepr","averagenp","averagejsd","averageent","titlescore","absscore","keyscore")
+
+# add number of pages, impute NA rows using mean of non-NA values
+mydata$pages = strtoi(title$pages)
+mydata$pages[is.na(mydata$pages)] = mean(mydata$pages[!is.na(mydata$pages)])
 
 # save to file
 save(mydata, file="mydataframe.RData")
